@@ -245,148 +245,150 @@ ModelData* Raw2Gltf(
       TextureData* emissiveTexture = simpleTex(RAW_TEXTURE_USAGE_EMISSIVE).get();
       TextureData* occlusionTexture = nullptr;
 
-      std::shared_ptr<PBRMetallicRoughness> pbrMetRough;
-      if (options.usePBRMetRough) {
-        // albedo is a basic texture, no merging needed
-        std::shared_ptr<TextureData> baseColorTex, aoMetRoughTex;
+      if (options.processTextures) {
+        std::shared_ptr<PBRMetallicRoughness> pbrMetRough;
+        if (options.usePBRMetRough) {
+          // albedo is a basic texture, no merging needed
+          std::shared_ptr<TextureData> baseColorTex, aoMetRoughTex;
 
-        Vec4f diffuseFactor;
-        float metallic, roughness;
-        if (material.info->shadingModel == RAW_SHADING_MODEL_PBR_MET_ROUGH) {
-          /**
-           * PBR FBX Material -> PBR Met/Rough glTF.
-           *
-           * METALLIC and ROUGHNESS textures are packed in G and B channels of a rough/met texture.
-           * Other values translate directly.
-           */
-          RawMetRoughMatProps* props = (RawMetRoughMatProps*)material.info.get();
+          Vec4f diffuseFactor;
+          float metallic, roughness;
+          if (material.info->shadingModel == RAW_SHADING_MODEL_PBR_MET_ROUGH) {
+            /**
+             * PBR FBX Material -> PBR Met/Rough glTF.
+             *
+             * METALLIC and ROUGHNESS textures are packed in G and B channels of a rough/met texture.
+             * Other values translate directly.
+             */
+            RawMetRoughMatProps* props = (RawMetRoughMatProps*)material.info.get();
 
-          // determine if we need to generate a combined map
-          bool hasMetallicMap = material.textures[RAW_TEXTURE_USAGE_METALLIC] >= 0;
-          bool hasRoughnessMap = material.textures[RAW_TEXTURE_USAGE_ROUGHNESS] >= 0;
-          bool hasOcclusionMap = material.textures[RAW_TEXTURE_USAGE_OCCLUSION] >= 0;
-          bool atLeastTwoMaps = hasMetallicMap ? (hasRoughnessMap || hasOcclusionMap)
-                                               : (hasRoughnessMap && hasMetallicMap);
-          if (!atLeastTwoMaps) {
-            // this handles the case of 0 or 1 maps supplied
-            aoMetRoughTex = hasMetallicMap
-                ? simpleTex(RAW_TEXTURE_USAGE_METALLIC)
-                : (hasRoughnessMap
-                       ? simpleTex(RAW_TEXTURE_USAGE_ROUGHNESS)
-                       : (hasOcclusionMap ? simpleTex(RAW_TEXTURE_USAGE_OCCLUSION) : nullptr));
-          } else {
-            // otherwise merge occlusion into the red channel, metallic into blue channel, and
-            // roughness into the green, of a new combinatory texture
-            aoMetRoughTex = textureBuilder.combine(
-                {
-                    material.textures[RAW_TEXTURE_USAGE_OCCLUSION],
-                    material.textures[RAW_TEXTURE_USAGE_METALLIC],
-                    material.textures[RAW_TEXTURE_USAGE_ROUGHNESS],
-                },
-                "ao_met_rough",
-                [&](const std::vector<const TextureBuilder::pixel*> pixels)
-                    -> TextureBuilder::pixel {
-                  const float occlusion = (*pixels[0])[0];
-                  const float metallic = (*pixels[1])[0] * (hasMetallicMap ? 1 : props->metallic);
-                  const float roughness =
-                      (*pixels[2])[0] * (hasRoughnessMap ? 1 : props->roughness);
-                  return {{occlusion,
-                           props->invertRoughnessMap ? 1.0f - roughness : roughness,
-                           metallic,
-                           1}};
-                },
-                false);
-          }
-          baseColorTex = simpleTex(RAW_TEXTURE_USAGE_ALBEDO);
-          diffuseFactor = props->diffuseFactor;
-          metallic = props->metallic;
-          roughness = props->roughness;
-          emissiveFactor = props->emissiveFactor;
-          emissiveIntensity = props->emissiveIntensity;
-          // this will set occlusionTexture to null, if no actual occlusion map exists
-          occlusionTexture = aoMetRoughTex.get();
-        } else {
-          /**
-           * Traditional FBX Material -> PBR Met/Rough glTF.
-           *
-           * Diffuse channel is used as base colour. Simple constants for metallic and roughness.
-           */
-          const RawTraditionalMatProps* props = ((RawTraditionalMatProps*)material.info.get());
-          diffuseFactor = props->diffuseFactor;
-
-          if (material.info->shadingModel == RAW_SHADING_MODEL_BLINN ||
-              material.info->shadingModel == RAW_SHADING_MODEL_PHONG) {
-            // blinn/phong hardcoded to 0.4 metallic
-            metallic = 0.4f;
-
-            // fairly arbitrary conversion equation, with properties:
-            //   shininess 0 -> roughness 1
-            //   shininess 2 -> roughness ~0.7
-            //   shininess 6 -> roughness 0.5
-            //   shininess 16 -> roughness ~0.33
-            //   as shininess ==> oo, roughness ==> 0
-            auto getRoughness = [&](float shininess) { return sqrtf(2.0f / (2.0f + shininess)); };
-
-            aoMetRoughTex = textureBuilder.combine(
-                {
-                    material.textures[RAW_TEXTURE_USAGE_SHININESS],
-                },
-                "ao_met_rough",
-                [&](const std::vector<const TextureBuilder::pixel*> pixels)
-                    -> TextureBuilder::pixel {
-                  // do not multiply with props->shininess; that doesn't work like the other
-                  // factors.
-                  float shininess = props->shininess * (*pixels[0])[0];
-                  return {{0, getRoughness(shininess), metallic, 1}};
-                },
-                false);
-
-            if (aoMetRoughTex != nullptr) {
-              // if we successfully built a texture, factors are just multiplicative identity
-              metallic = roughness = 1.0f;
+            // determine if we need to generate a combined map
+            bool hasMetallicMap = material.textures[RAW_TEXTURE_USAGE_METALLIC] >= 0;
+            bool hasRoughnessMap = material.textures[RAW_TEXTURE_USAGE_ROUGHNESS] >= 0;
+            bool hasOcclusionMap = material.textures[RAW_TEXTURE_USAGE_OCCLUSION] >= 0;
+            bool atLeastTwoMaps = hasMetallicMap ? (hasRoughnessMap || hasOcclusionMap)
+                                                : (hasRoughnessMap && hasMetallicMap);
+            if (!atLeastTwoMaps) {
+              // this handles the case of 0 or 1 maps supplied
+              aoMetRoughTex = hasMetallicMap
+                  ? simpleTex(RAW_TEXTURE_USAGE_METALLIC)
+                  : (hasRoughnessMap
+                        ? simpleTex(RAW_TEXTURE_USAGE_ROUGHNESS)
+                        : (hasOcclusionMap ? simpleTex(RAW_TEXTURE_USAGE_OCCLUSION) : nullptr));
             } else {
-              // no shininess texture,
-              roughness = getRoughness(props->shininess);
+              // otherwise merge occlusion into the red channel, metallic into blue channel, and
+              // roughness into the green, of a new combinatory texture
+              aoMetRoughTex = textureBuilder.combine(
+                  {
+                      material.textures[RAW_TEXTURE_USAGE_OCCLUSION],
+                      material.textures[RAW_TEXTURE_USAGE_METALLIC],
+                      material.textures[RAW_TEXTURE_USAGE_ROUGHNESS],
+                  },
+                  "ao_met_rough",
+                  [&](const std::vector<const TextureBuilder::pixel*> pixels)
+                      -> TextureBuilder::pixel {
+                    const float occlusion = (*pixels[0])[0];
+                    const float metallic = (*pixels[1])[0] * (hasMetallicMap ? 1 : props->metallic);
+                    const float roughness =
+                        (*pixels[2])[0] * (hasRoughnessMap ? 1 : props->roughness);
+                    return {{occlusion,
+                            props->invertRoughnessMap ? 1.0f - roughness : roughness,
+                            metallic,
+                            1}};
+                  },
+                  false);
+            }
+            baseColorTex = simpleTex(RAW_TEXTURE_USAGE_ALBEDO);
+            diffuseFactor = props->diffuseFactor;
+            metallic = props->metallic;
+            roughness = props->roughness;
+            emissiveFactor = props->emissiveFactor;
+            emissiveIntensity = props->emissiveIntensity;
+            // this will set occlusionTexture to null, if no actual occlusion map exists
+            occlusionTexture = aoMetRoughTex.get();
+          } else {
+            /**
+             * Traditional FBX Material -> PBR Met/Rough glTF.
+             *
+             * Diffuse channel is used as base colour. Simple constants for metallic and roughness.
+             */
+            const RawTraditionalMatProps* props = ((RawTraditionalMatProps*)material.info.get());
+            diffuseFactor = props->diffuseFactor;
+
+            if (material.info->shadingModel == RAW_SHADING_MODEL_BLINN ||
+                material.info->shadingModel == RAW_SHADING_MODEL_PHONG) {
+              // blinn/phong hardcoded to 0.4 metallic
+              metallic = 0.4f;
+
+              // fairly arbitrary conversion equation, with properties:
+              //   shininess 0 -> roughness 1
+              //   shininess 2 -> roughness ~0.7
+              //   shininess 6 -> roughness 0.5
+              //   shininess 16 -> roughness ~0.33
+              //   as shininess ==> oo, roughness ==> 0
+              auto getRoughness = [&](float shininess) { return sqrtf(2.0f / (2.0f + shininess)); };
+
+              aoMetRoughTex = textureBuilder.combine(
+                  {
+                      material.textures[RAW_TEXTURE_USAGE_SHININESS],
+                  },
+                  "ao_met_rough",
+                  [&](const std::vector<const TextureBuilder::pixel*> pixels)
+                      -> TextureBuilder::pixel {
+                    // do not multiply with props->shininess; that doesn't work like the other
+                    // factors.
+                    float shininess = props->shininess * (*pixels[0])[0];
+                    return {{0, getRoughness(shininess), metallic, 1}};
+                  },
+                  false);
+
+              if (aoMetRoughTex != nullptr) {
+                // if we successfully built a texture, factors are just multiplicative identity
+                metallic = roughness = 1.0f;
+              } else {
+                // no shininess texture,
+                roughness = getRoughness(props->shininess);
+              }
+
+            } else {
+              metallic = 0.2f;
+              roughness = 0.8f;
             }
 
+            baseColorTex = simpleTex(RAW_TEXTURE_USAGE_DIFFUSE);
+
+            emissiveFactor = props->emissiveFactor;
+            emissiveIntensity = 1.0f;
+          }
+          pbrMetRough.reset(new PBRMetallicRoughness(
+              baseColorTex.get(), aoMetRoughTex.get(), diffuseFactor, metallic, roughness));
+        }
+
+        std::shared_ptr<KHRCmnUnlitMaterial> khrCmnUnlitMat;
+        if (options.useKHRMatUnlit) {
+          normalTexture = nullptr;
+
+          emissiveTexture = nullptr;
+          emissiveFactor = Vec3f(0.00f, 0.00f, 0.00f);
+
+          Vec4f diffuseFactor;
+          std::shared_ptr<TextureData> baseColorTex;
+
+          if (material.info->shadingModel == RAW_SHADING_MODEL_PBR_MET_ROUGH) {
+            RawMetRoughMatProps* props = (RawMetRoughMatProps*)material.info.get();
+            diffuseFactor = props->diffuseFactor;
+            baseColorTex = simpleTex(RAW_TEXTURE_USAGE_ALBEDO);
           } else {
-            metallic = 0.2f;
-            roughness = 0.8f;
+            RawTraditionalMatProps* props = ((RawTraditionalMatProps*)material.info.get());
+            diffuseFactor = props->diffuseFactor;
+            baseColorTex = simpleTex(RAW_TEXTURE_USAGE_DIFFUSE);
           }
 
-          baseColorTex = simpleTex(RAW_TEXTURE_USAGE_DIFFUSE);
+          pbrMetRough.reset(
+              new PBRMetallicRoughness(baseColorTex.get(), nullptr, diffuseFactor, 0.0f, 1.0f));
 
-          emissiveFactor = props->emissiveFactor;
-          emissiveIntensity = 1.0f;
+          khrCmnUnlitMat.reset(new KHRCmnUnlitMaterial());
         }
-        pbrMetRough.reset(new PBRMetallicRoughness(
-            baseColorTex.get(), aoMetRoughTex.get(), diffuseFactor, metallic, roughness));
-      }
-
-      std::shared_ptr<KHRCmnUnlitMaterial> khrCmnUnlitMat;
-      if (options.useKHRMatUnlit) {
-        normalTexture = nullptr;
-
-        emissiveTexture = nullptr;
-        emissiveFactor = Vec3f(0.00f, 0.00f, 0.00f);
-
-        Vec4f diffuseFactor;
-        std::shared_ptr<TextureData> baseColorTex;
-
-        if (material.info->shadingModel == RAW_SHADING_MODEL_PBR_MET_ROUGH) {
-          RawMetRoughMatProps* props = (RawMetRoughMatProps*)material.info.get();
-          diffuseFactor = props->diffuseFactor;
-          baseColorTex = simpleTex(RAW_TEXTURE_USAGE_ALBEDO);
-        } else {
-          RawTraditionalMatProps* props = ((RawTraditionalMatProps*)material.info.get());
-          diffuseFactor = props->diffuseFactor;
-          baseColorTex = simpleTex(RAW_TEXTURE_USAGE_DIFFUSE);
-        }
-
-        pbrMetRough.reset(
-            new PBRMetallicRoughness(baseColorTex.get(), nullptr, diffuseFactor, 0.0f, 1.0f));
-
-        khrCmnUnlitMat.reset(new KHRCmnUnlitMaterial());
       }
       if (!occlusionTexture) {
         occlusionTexture = simpleTex(RAW_TEXTURE_USAGE_OCCLUSION).get();
