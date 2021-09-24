@@ -181,7 +181,8 @@ fi
 
 # Install and configure Conan, if needed
 > pip3 install conan # or sometimes just "pip"; you may need to install Python/PIP
-> conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+> conan remote add --force bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
+> conan config set general.revisions_enabled=1
 
 # Initialize & run build
 > conan install . -i build -s build_type=Release ${CONAN_CONFIG}
