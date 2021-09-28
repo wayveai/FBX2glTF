@@ -127,4 +127,6 @@ struct GltfOptions {
   std::string fbxTempDir;
 
   bool skipTextureProcessing{false};
+
+  std::string textureBasePath;
 };

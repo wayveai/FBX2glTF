@@ -179,8 +179,10 @@ std::shared_ptr<TextureData> TextureBuilder::simple(int rawTexIndex, const std::
 
   const RawTexture& rawTexture = raw.GetTexture(rawTexIndex);
   const std::string textureName = FileUtils::GetFileBase(rawTexture.name);
+
+  const std::string base_path = options.textureBasePath.empty() ? FileUtils::GetAbsolutePath(outputFolder) : FileUtils::GetAbsolutePath(options.textureBasePath);
   const std::string relativeFilename = options.skipTextureProcessing 
-                                      ? FileUtils::GetRelativePath(FileUtils::GetAbsolutePath(rawTexture.fileLocation), FileUtils::GetAbsolutePath(outputFolder))
+                                      ? FileUtils::GetRelativePath(FileUtils::GetAbsolutePath(rawTexture.fileLocation), base_path)
                                       : FileUtils::GetFileName(rawTexture.fileLocation);
 
   ImageData* image = nullptr;
