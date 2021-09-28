@@ -37,6 +37,10 @@ inline std::string GetAbsolutePath(const std::string& filePath) {
   return boost::filesystem::absolute(filePath).string();
 }
 
+inline std::string GetRelativePath(const std::string& child_path, const std::string& parent_path) {
+  return boost::filesystem::relative(child_path, parent_path).string();
+}
+
 inline std::string GetCurrentFolder() {
   return boost::filesystem::current_path().string();
 }
