@@ -266,14 +266,14 @@ ModelData* Raw2Gltf(
           bool hasRoughnessMap = material.textures[RAW_TEXTURE_USAGE_ROUGHNESS] >= 0;
           bool hasOcclusionMap = material.textures[RAW_TEXTURE_USAGE_OCCLUSION] >= 0;
           bool atLeastTwoMaps = hasMetallicMap ? (hasRoughnessMap || hasOcclusionMap)
-                                               : (hasRoughnessMap && hasMetallicMap);
+                                              : (hasRoughnessMap && hasMetallicMap);
           if (!atLeastTwoMaps) {
             // this handles the case of 0 or 1 maps supplied
             aoMetRoughTex = hasMetallicMap
                 ? simpleTex(RAW_TEXTURE_USAGE_METALLIC)
                 : (hasRoughnessMap
-                       ? simpleTex(RAW_TEXTURE_USAGE_ROUGHNESS)
-                       : (hasOcclusionMap ? simpleTex(RAW_TEXTURE_USAGE_OCCLUSION) : nullptr));
+                      ? simpleTex(RAW_TEXTURE_USAGE_ROUGHNESS)
+                      : (hasOcclusionMap ? simpleTex(RAW_TEXTURE_USAGE_OCCLUSION) : nullptr));
           } else {
             // otherwise merge occlusion into the red channel, metallic into blue channel, and
             // roughness into the green, of a new combinatory texture
@@ -291,9 +291,9 @@ ModelData* Raw2Gltf(
                   const float roughness =
                       (*pixels[2])[0] * (hasRoughnessMap ? 1 : props->roughness);
                   return {{occlusion,
-                           props->invertRoughnessMap ? 1.0f - roughness : roughness,
-                           metallic,
-                           1}};
+                          props->invertRoughnessMap ? 1.0f - roughness : roughness,
+                          metallic,
+                          1}};
                 },
                 false);
           }
@@ -361,8 +361,7 @@ ModelData* Raw2Gltf(
         }
         pbrMetRough.reset(new PBRMetallicRoughness(
             baseColorTex.get(), aoMetRoughTex.get(), diffuseFactor, metallic, roughness));
-      }
-
+        }
       std::shared_ptr<KHRCmnUnlitMaterial> khrCmnUnlitMat;
       if (options.useKHRMatUnlit) {
         normalTexture = nullptr;

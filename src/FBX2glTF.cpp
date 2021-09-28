@@ -239,6 +239,8 @@ int main(int argc, char* argv[]) {
 
   app.add_option("--fbx-temp-dir", gltfOptions.fbxTempDir, "Temporary directory to be used by FBX SDK.")->check(CLI::ExistingDirectory);
 
+  app.add_flag("--skip-texture-processing", gltfOptions.skipTextureProcessing, "Flag to skip processing textures, instead use source textures.");
+
   CLI11_PARSE(app, argc, argv);
 
   bool do_flip_u = false;
