@@ -186,6 +186,11 @@ std::shared_ptr<TextureData> TextureBuilder::simple(int rawTexIndex, const std::
                                       : FileUtils::GetFileName(rawTexture.fileLocation);
 
   ImageData* image = nullptr;
+
+  if (!FileUtils::FileExists(rawTexture.fileLocation)) {
+    return nullptr;
+  }
+
   if (options.outputBinary) {
     auto bufferView = gltf.AddBufferViewForFile(*gltf.defaultBuffer, rawTexture.fileLocation);
     if (bufferView) {
