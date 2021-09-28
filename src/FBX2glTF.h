@@ -126,5 +126,5 @@ struct GltfOptions {
   /** Temporary directory used by FBX SDK. */
   std::string fbxTempDir;
 
-  bool processTextures{true};
+  bool skipTextureProcessing{false};
 };

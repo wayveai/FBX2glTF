@@ -179,8 +179,9 @@ std::shared_ptr<TextureData> TextureBuilder::simple(int rawTexIndex, const std::
 
   const RawTexture& rawTexture = raw.GetTexture(rawTexIndex);
   const std::string textureName = FileUtils::GetFileBase(rawTexture.name);
-  const std::string relativeFilename = options.processTextures ? FileUtils::GetFileName(rawTexture.fileLocation)
-                                      : FileUtils::GetRelativePath(FileUtils::GetAbsolutePath(rawTexture.fileLocation), FileUtils::GetAbsolutePath(outputFolder));
+  const std::string relativeFilename = options.skipTextureProcessing 
+                                      ? FileUtils::GetRelativePath(FileUtils::GetAbsolutePath(rawTexture.fileLocation), FileUtils::GetAbsolutePath(outputFolder))
+                                      : FileUtils::GetFileName(rawTexture.fileLocation);
 
   ImageData* image = nullptr;
   if (options.outputBinary) {
@@ -202,7 +203,7 @@ std::shared_ptr<TextureData> TextureBuilder::simple(int rawTexIndex, const std::
 
   } else if (!relativeFilename.empty()) {
     image = new ImageData(relativeFilename, relativeFilename);
-    if (options.processTextures) {
+    if (!options.skipTextureProcessing) {
       std::string outputPath = outputFolder + "/" + relativeFilename;
         if (FileUtils::CopyFile(rawTexture.fileLocation, outputPath, true)) {
         if (verboseOutput) {
