@@ -241,6 +241,8 @@ int main(int argc, char* argv[]) {
 
   app.add_flag("--skip-texture-processing", gltfOptions.skipTextureProcessing, "Flag to skip processing textures, instead use source textures.");
 
+  app.add_option("--texture-base-path", gltfOptions.textureBasePath, "Specify an absolute texture base path.");
+
   CLI11_PARSE(app, argc, argv);
 
   bool do_flip_u = false;
