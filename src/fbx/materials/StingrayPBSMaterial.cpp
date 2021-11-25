@@ -41,17 +41,18 @@ std::unique_ptr<FbxRoughMetMaterialInfo> FbxStingrayPBSMaterialResolver::resolve
     return vecProp.IsValid() ? vecProp.Get<FbxDouble3>() : FbxDouble3(1, 1, 1);
   };
 
-  auto getVal = [&](std::string propName) -> FbxDouble {
+  auto getVal = [&](std::string propName, FbxDouble default_val = 0.0) -> FbxDouble {
     const FbxProperty vecProp = mayaProp.FindHierarchical(propName.c_str());
-    return vecProp.IsValid() ? vecProp.Get<FbxDouble>() : 0;
+    return vecProp.IsValid() ? vecProp.Get<FbxDouble>() : default_val;
   };
 
   FbxDouble3 baseColor = getVec("base_color");
+  FbxDouble opacity = getVal("opacity", 1.0);
   std::unique_ptr<FbxRoughMetMaterialInfo> res(new FbxRoughMetMaterialInfo(
       fbxMaterial->GetUniqueID(),
       fbxMaterial->GetName(),
       FbxRoughMetMaterialInfo::FBX_SHADER_METROUGH,
-      FbxDouble4(baseColor[0], baseColor[1], baseColor[2], 1),
+      FbxDouble4(baseColor[0], baseColor[1], baseColor[2], opacity),
       getVal("metallic"),
       getVal("roughness")));
   res->texNormal = getTex("normal");
