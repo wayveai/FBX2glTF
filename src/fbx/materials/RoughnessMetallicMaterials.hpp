@@ -31,7 +31,7 @@ struct FbxRoughMetMaterialInfo : FbxMaterialInfo {
         metallic(metallic),
         roughness(roughness) {}
 
-  const FbxVector4 baseColor;
+  const FbxDouble4 baseColor;
   const FbxDouble metallic;
   const FbxDouble roughness;
 
