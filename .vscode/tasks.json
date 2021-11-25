@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks":
+    [
+        {
+            "label": "FBX2glTF Debug",
+            "group": "build",
+            "options": { "cwd": "${workspaceFolder}" },
+            "command": "./build.sh",
+            "type": "shell",
+            "problemMatcher": "$gcc"
+        }
+    ]
+}
