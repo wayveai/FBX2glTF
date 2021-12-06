@@ -8,3 +8,5 @@ else
 fi
 
 conan build . -bf ${BUILD_FILE_NAME}
+
+cp "${BUILD_FILE_NAME}/FBX2glTF" "../WayveSimAssets/${BUILD_FILE_NAME}"
