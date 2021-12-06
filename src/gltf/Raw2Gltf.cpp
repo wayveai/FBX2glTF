@@ -246,7 +246,7 @@ ModelData* Raw2Gltf(
       TextureData* occlusionTexture = nullptr;
 
       std::shared_ptr<PBRMetallicRoughness> pbrMetRough;
-      if (options.usePBRMetRough) {
+      if (options.usePBRMetRough && !options.skipTextureProcessing) {
         // albedo is a basic texture, no merging needed
         std::shared_ptr<TextureData> baseColorTex, aoMetRoughTex;
 

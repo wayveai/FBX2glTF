@@ -25,3 +25,5 @@ conan config set general.revisions_enabled=1
 # Initialize and run build
 conan install . -i ${BUILD_FILE_NAME} -s build_type=Release ${CONAN_CONFIG} --build missing
 conan build . -bf ${BUILD_FILE_NAME}
+
+cp "${BUILD_FILE_NAME}/FBX2glTF" "../WayveSimAssets/${BUILD_FILE_NAME}"
