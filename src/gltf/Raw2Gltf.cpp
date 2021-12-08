@@ -386,6 +386,27 @@ ModelData* Raw2Gltf(
             new PBRMetallicRoughness(baseColorTex.get(), nullptr, diffuseFactor, 0.0f, 1.0f));
 
         khrCmnUnlitMat.reset(new KHRCmnUnlitMaterial());
+      } else if (options.skipTextureProcessing) {
+        Vec4f diffuseFactor;
+        std::shared_ptr<TextureData> baseColorTex;
+        float metallic, roughness; 
+
+        if (material.info->shadingModel == RAW_SHADING_MODEL_PBR_MET_ROUGH) {
+          RawMetRoughMatProps* props = (RawMetRoughMatProps*)material.info.get();
+          diffuseFactor = props->diffuseFactor;
+          baseColorTex = simpleTex(RAW_TEXTURE_USAGE_ALBEDO);
+          metallic = props->metallic;
+          roughness = props->roughness;
+        } else {
+          RawTraditionalMatProps* props = ((RawTraditionalMatProps*)material.info.get());
+          diffuseFactor = props->diffuseFactor;
+          baseColorTex = simpleTex(RAW_TEXTURE_USAGE_DIFFUSE);
+          metallic = 0.4f;
+          roughness = sqrtf(2.0f / (2.0f + props->shininess));
+        }
+
+        pbrMetRough.reset(
+            new PBRMetallicRoughness(baseColorTex.get(), nullptr, diffuseFactor, metallic, roughness));
       }
       if (!occlusionTexture) {
         occlusionTexture = simpleTex(RAW_TEXTURE_USAGE_OCCLUSION).get();
