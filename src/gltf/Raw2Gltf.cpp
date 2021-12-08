@@ -389,6 +389,8 @@ ModelData* Raw2Gltf(
       } else if (options.skipTextureProcessing) {
         Vec4f diffuseFactor;
         std::shared_ptr<TextureData> baseColorTex;
+        std::shared_ptr<TextureData> metallicTex;
+        std::shared_ptr<TextureData> roughnessTex;
         float metallic, roughness; 
 
         if (material.info->shadingModel == RAW_SHADING_MODEL_PBR_MET_ROUGH) {
@@ -404,9 +406,11 @@ ModelData* Raw2Gltf(
           metallic = 0.4f;
           roughness = sqrtf(2.0f / (2.0f + props->shininess));
         }
+        metallicTex = simpleTex(RAW_TEXTURE_USAGE_METALLIC);
+        roughnessTex = simpleTex(RAW_TEXTURE_USAGE_ROUGHNESS);
 
         pbrMetRough.reset(
-            new PBRMetallicRoughness(baseColorTex.get(), nullptr, diffuseFactor, metallic, roughness));
+            new PBRMetallicRoughness(baseColorTex.get(), metallicTex.get(), roughnessTex.get(), diffuseFactor, metallic, roughness));
       }
       if (!occlusionTexture) {
         occlusionTexture = simpleTex(RAW_TEXTURE_USAGE_OCCLUSION).get();

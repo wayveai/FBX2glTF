@@ -32,8 +32,21 @@ struct PBRMetallicRoughness {
       float metallic = 0.1f,
       float roughness = 0.6f);
 
+  PBRMetallicRoughness(
+      const TextureData* baseColorTexture,
+      const TextureData* metallicTexture,
+      const TextureData* roughnessTexture,
+      const Vec4f& baseColorFactor,
+      float metallic = 0.1f,
+      float roughness = 0.6f);
+
   std::unique_ptr<Tex> baseColorTexture;
+  // combined textures
   std::unique_ptr<Tex> metRoughTexture;
+  // separate textures
+  std::unique_ptr<Tex> metallicTexture;
+  std::unique_ptr<Tex> roughnessTexture;
+
   const Vec4f baseColorFactor;
   const float metallic;
   const float roughness;
