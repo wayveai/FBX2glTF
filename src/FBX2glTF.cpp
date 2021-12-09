@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  if (!gltfOptions.useKHRMatUnlit && !gltfOptions.usePBRMetRough) {
+  if (!gltfOptions.useKHRMatUnlit && !gltfOptions.usePBRMetRough && !gltfOptions.skipTextureProcessing) {
     if (verboseOutput) {
       fmt::printf("Defaulting to --pbr-metallic-roughness material support.\n");
     }

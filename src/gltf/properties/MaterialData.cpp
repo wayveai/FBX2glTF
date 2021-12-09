@@ -50,6 +50,20 @@ PBRMetallicRoughness::PBRMetallicRoughness(
       metallic(clamp(metallic)),
       roughness(clamp(roughness)) {}
 
+PBRMetallicRoughness::PBRMetallicRoughness(
+    const TextureData* baseColorTexture,
+    const TextureData* metallicTexture,
+    const TextureData* roughnessTexture,
+    const Vec4f& baseColorFactor,
+    float metallic,
+    float roughness) 
+    : baseColorTexture(Tex::ref(baseColorTexture)),
+      baseColorFactor(clamp(baseColorFactor)),
+      metallicTexture(Tex::ref(metallicTexture)),
+      roughnessTexture(Tex::ref(roughnessTexture)),
+      metallic(clamp(metallic)),
+      roughness(clamp(roughness)) {}
+
 void to_json(json& j, const PBRMetallicRoughness& d) {
   j = {};
   if (d.baseColorTexture != nullptr) {
@@ -65,8 +79,18 @@ void to_json(json& j, const PBRMetallicRoughness& d) {
     j["metallicFactor"] = 1.0f;
   } else {
     // without a texture, however, use metallic/roughness as constants
-    j["metallicFactor"] = d.metallic;
-    j["roughnessFactor"] = d.roughness;
+    if (d.metallicTexture) {
+      j["metallicTexture"] = *d.metallicTexture;
+      j["metallicFactor"] = 1.0f;
+    } else {
+      j["metallicFactor"] = d.metallic;
+    }
+    if (d.roughnessTexture) {
+      j["roughnessTexture"] = *d.roughnessTexture;
+      j["roughnessFactor"] = 1.0f;
+    } else {
+      j["roughnessFactor"] = d.roughness;
+    }
   }
 }
 
