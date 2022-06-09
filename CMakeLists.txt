@@ -9,7 +9,7 @@ set(typical_usage_str
 
 if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message(FATAL_ERROR
-    "Building from within the source tree is not supported! ${typical_usage_str}"))
+    "Building from within the source tree is not supported! ${typical_usage_str}")
 endif ()
 
 set(CMAKE_CXX_STANDARD 17)
