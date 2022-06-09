@@ -1,6 +1,7 @@
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     export BUILD_FILE_NAME=bin/darwin
+    export CMAKE_BINARY_DIR=%{PWD}/%{BUILD_FILE_NAME}
 elif [[ "$OSTYPE" == "linux"* ]]; then
     export BUILD_FILE_NAME=bin/linux
 else

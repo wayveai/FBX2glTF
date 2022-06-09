@@ -18,9 +18,11 @@
 if( CMAKE_SIZEOF_VOID_P MATCHES 8 )
   # void ptr = 8 byte --> x86_64
   set(ARCH_32 OFF)
+  set(ARCH_64 ON)
 else()
   # void ptr != 8 byte --> x86
   set(ARCH_32 OFF)
+  set(ARCH_64 ON)
 endif()
 
 if (NOT DEFINED FBXSDK_VERSION)
