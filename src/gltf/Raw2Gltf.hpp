@@ -11,14 +11,9 @@
 #include <memory>
 #include <string>
 
-// This can be a macro under Windows, confusing Draco
-#undef ERROR
-#include <draco/compression/encode.h>
-
 #include "FBX2glTF.h"
 #include "raw/RawModel.hpp"
 
-const std::string KHR_DRACO_MESH_COMPRESSION = "KHR_draco_mesh_compression";
 const std::string KHR_MATERIALS_CMN_UNLIT = "KHR_materials_unlit";
 const std::string KHR_LIGHTS_PUNCTUAL = "KHR_lights_punctual";
 
@@ -129,20 +124,6 @@ struct AttributeDefinition {
   const std::string gltfName;
   const T RawVertex::*rawAttributeIx;
   const GLType glType;
-  const draco::GeometryAttribute::Type dracoAttribute;
-  const draco::DataType dracoComponentType;
-
-  AttributeDefinition(
-      const std::string gltfName,
-      const T RawVertex::*rawAttributeIx,
-      const GLType& _glType,
-      const draco::GeometryAttribute::Type dracoAttribute,
-      const draco::DataType dracoComponentType)
-      : gltfName(gltfName),
-        rawAttributeIx(rawAttributeIx),
-        glType(_glType),
-        dracoAttribute(dracoAttribute),
-        dracoComponentType(dracoComponentType) {}
 
   AttributeDefinition(
       const std::string gltfName,
@@ -150,9 +131,7 @@ struct AttributeDefinition {
       const GLType& _glType)
       : gltfName(gltfName),
         rawAttributeIx(rawAttributeIx),
-        glType(_glType),
-        dracoAttribute(draco::GeometryAttribute::INVALID),
-        dracoComponentType(draco::DataType::DT_INVALID) {}
+        glType(_glType) {}
 };
 
 struct AccessorData;

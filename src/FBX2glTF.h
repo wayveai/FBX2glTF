@@ -90,17 +90,6 @@ struct GltfOptions {
   /** If non-binary, whether to inline all resources, for a single (large) .glTF file. */
   bool embedResources{false};
 
-  /** Whether and how to use KHR_draco_mesh_compression to minimize static geometry size. */
-  struct {
-    bool enabled = false;
-    int compressionLevel = 7;
-    int quantBitsPosition = 14;
-    int quantBitsTexCoord = 10;
-    int quantBitsNormal = 10;
-    int quantBitsColor = 8;
-    int quantBitsGeneric = 8;
-  } draco;
-
   /** Whether to include FBX User Properties as 'extras' metadata in glTF nodes. */
   bool enableUserProperties{false};
 

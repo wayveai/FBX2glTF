@@ -461,35 +461,12 @@ ModelData* Raw2Gltf(
           (options.useLongIndices == UseLongIndicesOptions::AUTO &&
            surfaceModel.GetVertexCount() > 65535);
 
-      std::shared_ptr<PrimitiveData> primitive;
-      if (options.draco.enabled) {
-        size_t triangleCount = surfaceModel.GetTriangleCount();
-
-        // initialize Draco mesh with vertex index information
-        auto dracoMesh(std::make_shared<draco::Mesh>());
-        dracoMesh->SetNumFaces(triangleCount);
-        dracoMesh->set_num_points(surfaceModel.GetVertexCount());
-
-        for (uint32_t ii = 0; ii < triangleCount; ii++) {
-          draco::Mesh::Face face;
-          face[0] = surfaceModel.GetTriangle(ii).verts[0];
-          face[1] = surfaceModel.GetTriangle(ii).verts[1];
-          face[2] = surfaceModel.GetTriangle(ii).verts[2];
-          dracoMesh->SetFace(draco::FaceIndex(ii), face);
-        }
-
-        AccessorData& indexes =
-            *gltf->accessors.hold(new AccessorData(useLongIndices ? GLT_UINT : GLT_USHORT));
-        indexes.count = to_uint32(3 * triangleCount);
-        primitive.reset(new PrimitiveData(indexes, mData, dracoMesh));
-      } else {
-        const AccessorData& indexes = *gltf->AddAccessorWithView(
-            *gltf->GetAlignedBufferView(buffer, BufferViewData::GL_ELEMENT_ARRAY_BUFFER),
-            useLongIndices ? GLT_UINT : GLT_USHORT,
-            getIndexArray(surfaceModel),
-            std::string(""));
-        primitive.reset(new PrimitiveData(indexes, mData));
-      };
+      const AccessorData& indexes = *gltf->AddAccessorWithView(
+          *gltf->GetAlignedBufferView(buffer, BufferViewData::GL_ELEMENT_ARRAY_BUFFER),
+          useLongIndices ? GLT_UINT : GLT_USHORT,
+          getIndexArray(surfaceModel),
+          std::string(""));
+      std::shared_ptr<PrimitiveData> primitive(new PrimitiveData(indexes, mData));
 
       //
       // surface vertices
@@ -499,9 +476,7 @@ ModelData* Raw2Gltf(
           const AttributeDefinition<Vec3f> ATTR_POSITION(
               "POSITION",
               &RawVertex::position,
-              GLT_VEC3F,
-              draco::GeometryAttribute::POSITION,
-              draco::DT_FLOAT32);
+              GLT_VEC3F);
           auto accessor =
               gltf->AddAttributeToPrimitive<Vec3f>(buffer, surfaceModel, *primitive, ATTR_POSITION);
 
@@ -512,9 +487,7 @@ ModelData* Raw2Gltf(
           const AttributeDefinition<Vec3f> ATTR_NORMAL(
               "NORMAL",
               &RawVertex::normal,
-              GLT_VEC3F,
-              draco::GeometryAttribute::NORMAL,
-              draco::DT_FLOAT32);
+              GLT_VEC3F);
           const auto _ =
               gltf->AddAttributeToPrimitive<Vec3f>(buffer, surfaceModel, *primitive, ATTR_NORMAL);
         }
@@ -527,9 +500,7 @@ ModelData* Raw2Gltf(
           const AttributeDefinition<Vec4f> ATTR_COLOR(
               "COLOR_0",
               &RawVertex::color,
-              GLT_VEC4F,
-              draco::GeometryAttribute::COLOR,
-              draco::DT_FLOAT32);
+              GLT_VEC4F);
           const auto _ =
               gltf->AddAttributeToPrimitive<Vec4f>(buffer, surfaceModel, *primitive, ATTR_COLOR);
         }
@@ -537,9 +508,7 @@ ModelData* Raw2Gltf(
           const AttributeDefinition<Vec2f> ATTR_TEXCOORD_0(
               "TEXCOORD_0",
               &RawVertex::uv0,
-              GLT_VEC2F,
-              draco::GeometryAttribute::TEX_COORD,
-              draco::DT_FLOAT32);
+              GLT_VEC2F);
           const auto _ = gltf->AddAttributeToPrimitive<Vec2f>(
               buffer, surfaceModel, *primitive, ATTR_TEXCOORD_0);
         }
@@ -547,9 +516,7 @@ ModelData* Raw2Gltf(
           const AttributeDefinition<Vec2f> ATTR_TEXCOORD_1(
               "TEXCOORD_1",
               &RawVertex::uv1,
-              GLT_VEC2F,
-              draco::GeometryAttribute::TEX_COORD,
-              draco::DT_FLOAT32);
+              GLT_VEC2F);
           const auto _ = gltf->AddAttributeToPrimitive<Vec2f>(
               buffer, surfaceModel, *primitive, ATTR_TEXCOORD_1);
         }
@@ -557,9 +524,7 @@ ModelData* Raw2Gltf(
           const AttributeDefinition<Vec4i> ATTR_JOINTS(
               "JOINTS_0",
               &RawVertex::jointIndices,
-              GLT_VEC4I,
-              draco::GeometryAttribute::GENERIC,
-              draco::DT_UINT16);
+              GLT_VEC4I);
           const auto _ =
               gltf->AddAttributeToPrimitive<Vec4i>(buffer, surfaceModel, *primitive, ATTR_JOINTS);
         }
@@ -567,9 +532,7 @@ ModelData* Raw2Gltf(
           const AttributeDefinition<Vec4f> ATTR_WEIGHTS(
               "WEIGHTS_0",
               &RawVertex::jointWeights,
-              GLT_VEC4F,
-              draco::GeometryAttribute::GENERIC,
-              draco::DT_FLOAT32);
+              GLT_VEC4F);
           const auto _ =
               gltf->AddAttributeToPrimitive<Vec4f>(buffer, surfaceModel, *primitive, ATTR_WEIGHTS);
         }
@@ -622,42 +585,6 @@ ModelData* Raw2Gltf(
 
           primitive->AddTarget(pAcc.get(), nAcc.get(), tAcc.get());
         }
-      }
-      if (options.draco.enabled) {
-        // Set up the encoder.
-        draco::Encoder encoder;
-
-        if (options.draco.compressionLevel != -1) {
-          int dracoSpeed = 10 - options.draco.compressionLevel;
-          encoder.SetSpeedOptions(dracoSpeed, dracoSpeed);
-        }
-        if (options.draco.quantBitsPosition != -1) {
-          encoder.SetAttributeQuantization(
-              draco::GeometryAttribute::POSITION, options.draco.quantBitsPosition);
-        }
-        if (options.draco.quantBitsTexCoord != -1) {
-          encoder.SetAttributeQuantization(
-              draco::GeometryAttribute::TEX_COORD, options.draco.quantBitsTexCoord);
-        }
-        if (options.draco.quantBitsNormal != -1) {
-          encoder.SetAttributeQuantization(
-              draco::GeometryAttribute::NORMAL, options.draco.quantBitsNormal);
-        }
-        if (options.draco.quantBitsColor != -1) {
-          encoder.SetAttributeQuantization(
-              draco::GeometryAttribute::COLOR, options.draco.quantBitsColor);
-        }
-        if (options.draco.quantBitsGeneric != -1) {
-          encoder.SetAttributeQuantization(
-              draco::GeometryAttribute::GENERIC, options.draco.quantBitsGeneric);
-        }
-
-        draco::EncoderBuffer dracoBuffer;
-        draco::Status status = encoder.EncodeMeshToBuffer(*primitive->dracoMesh, &dracoBuffer);
-        assert(status.code() == draco::Status::OK);
-
-        auto view = gltf->AddRawBufferView(buffer, dracoBuffer.data(), to_uint32(dracoBuffer.size()));
-        primitive->NoteDracoBuffer(*view);
       }
       mesh->AddPrimitive(primitive);
     }
@@ -823,10 +750,6 @@ ModelData* Raw2Gltf(
     }
     if (!gltf->lights.ptrs.empty()) {
       extensionsUsed.push_back(KHR_LIGHTS_PUNCTUAL);
-    }
-    if (options.draco.enabled) {
-      extensionsUsed.push_back(KHR_DRACO_MESH_COMPRESSION);
-      extensionsRequired.push_back(KHR_DRACO_MESH_COMPRESSION);
     }
 
     json glTFJson{{"asset", {{"generator", "FBX2glTF v" + FBX2GLTF_VERSION}, {"version", "2.0"}}},

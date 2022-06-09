@@ -10,8 +10,6 @@
 
 #include <string>
 
-#include <draco/compression/encode.h>
-
 #include "gltf/Raw2Gltf.hpp"
 
 #include "PrimitiveData.hpp"

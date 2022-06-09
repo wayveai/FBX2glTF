@@ -1114,7 +1114,7 @@ bool LoadFBXFile(
 
   if (!pImporter->Initialize(fbxFileNameU8.c_str(), -1, pManager->GetIOSettings())) {
     if (verboseOutput) {
-      fmt::printf("%s\n", pImporter->GetStatus().GetErrorString());
+      fmt::printf("Importer: %s\n", pImporter->GetStatus().GetErrorString());
     }
     pImporter->Destroy();
     pManager->Destroy();
@@ -1128,6 +1128,7 @@ bool LoadFBXFile(
   if (pScene == nullptr) {
     pImporter->Destroy();
     pManager->Destroy();
+    fmt::printf("No scene!");
     return false;
   }
 
