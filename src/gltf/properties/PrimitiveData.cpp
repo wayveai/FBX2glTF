@@ -12,29 +12,13 @@
 #include "BufferViewData.hpp"
 #include "MaterialData.hpp"
 
-PrimitiveData::PrimitiveData(
-    const AccessorData& indices,
-    const MaterialData& material,
-    std::shared_ptr<draco::Mesh> dracoMesh)
-    : indices(indices.ix),
-      material(material.ix),
-      mode(TRIANGLES),
-      dracoMesh(dracoMesh),
-      dracoBufferView(-1) {}
-
 PrimitiveData::PrimitiveData(const AccessorData& indices, const MaterialData& material)
     : indices(indices.ix),
       material(material.ix),
-      mode(TRIANGLES),
-      dracoMesh(nullptr),
-      dracoBufferView(-1) {}
+      mode(TRIANGLES) {}
 
 void PrimitiveData::AddAttrib(std::string name, const AccessorData& accessor) {
   attributes[name] = accessor.ix;
-}
-
-void PrimitiveData::NoteDracoBuffer(const BufferViewData& data) {
-  dracoBufferView = data.ix;
 }
 
 void PrimitiveData::AddTarget(
@@ -71,9 +55,5 @@ void to_json(json& j, const PrimitiveData& d) {
       targets.push_back(target);
     }
     j["targets"] = targets;
-  }
-  if (!d.dracoAttributes.empty()) {
-    j["extensions"] = {{KHR_DRACO_MESH_COMPRESSION,
-                        {{"bufferView", d.dracoBufferView}, {"attributes", d.dracoAttributes}}}};
   }
 }

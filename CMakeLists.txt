@@ -12,7 +12,10 @@ if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     "Building from within the source tree is not supported! ${typical_usage_str}")
 endif ()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_OSX_ARCHITECHTURES "x86_64")
+set(CMAKE_SYSTEM_PROCESSOR "x86_64")
+set(CMAKE_APPLE_SILICON_PROCESSOR "x86_64")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 include(ExternalProject)
@@ -53,23 +56,6 @@ find_package(fmt MODULE REQUIRED)
 
 # create a compilation database for e.g. clang-tidy
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# DRACO
-ExternalProject_Add(Draco
-  GIT_REPOSITORY https://github.com/google/draco
-  GIT_TAG 1.3.4
-  PREFIX draco
-  INSTALL_DIR
-  CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-        -DBUILD_FOR_GLTF=1
-)
-set(DRACO_INCLUDE_DIR "${CMAKE_BINARY_DIR}/draco/include")
-if (WIN32)
-   set(DRACO_LIB "${CMAKE_BINARY_DIR}/draco/lib/dracoenc.lib")
-else()
-   set(DRACO_LIB "${CMAKE_BINARY_DIR}/draco/lib/libdracoenc.a")
-endif()
 
 # MATHFU
 set(mathfu_build_benchmarks OFF CACHE BOOL "")
@@ -180,8 +166,7 @@ set_target_properties(libFBX2glTF PROPERTIES OUTPUT_NAME "FBX2glTF")
 add_executable(appFBX2glTF src/FBX2glTF.cpp)
 set_target_properties(appFBX2glTF PROPERTIES OUTPUT_NAME "FBX2glTF")
 
-add_dependencies(libFBX2glTF
-  Draco
+add_dependencies(libFBX2glTF  
   MathFu
   FiFoMap
   CPPCodec
@@ -203,7 +188,6 @@ target_link_libraries(libFBX2glTF
   ${FRAMEWORKS}
   boost_filesystem::boost_filesystem
   boost_optional::boost_optional
-  ${DRACO_LIB}
   optimized ${FBXSDK_LIBRARY}
   debug ${FBXSDK_LIBRARY_DEBUG}
   fmt::fmt
@@ -229,7 +213,6 @@ target_include_directories(libFBX2glTF SYSTEM PUBLIC
   "third_party/stb"
   "third_party/json"
   ${FBXSDK_INCLUDE_DIR}
-  ${DRACO_INCLUDE_DIR}
   ${MATHFU_INCLUDE_DIRS}
   ${FIFO_MAP_INCLUDE_DIR}
   ${CPPCODEC_INCLUDE_DIR}

@@ -21,11 +21,6 @@ struct PrimitiveData {
     TRIANGLE_FAN
   };
 
-  PrimitiveData(
-      const AccessorData& indices,
-      const MaterialData& material,
-      std::shared_ptr<draco::Mesh> dracoMesh);
-
   PrimitiveData(const AccessorData& indices, const MaterialData& material);
 
   void AddAttrib(std::string name, const AccessorData& accessor);
@@ -35,34 +30,6 @@ struct PrimitiveData {
       const AccessorData* normals,
       const AccessorData* tangents);
 
-  template <class T>
-  void AddDracoAttrib(const AttributeDefinition<T> attribute, const std::vector<T>& attribArr) {
-    draco::PointAttribute att;
-    int8_t componentCount = attribute.glType.count;
-    att.Init(
-        attribute.dracoAttribute,
-        nullptr,
-        componentCount,
-        attribute.dracoComponentType,
-        false,
-        componentCount * draco::DataTypeLength(attribute.dracoComponentType),
-        0);
-
-    const int dracoAttId = dracoMesh->AddAttribute(att, true, to_uint32(attribArr.size()));
-    draco::PointAttribute* attPtr = dracoMesh->attribute(dracoAttId);
-
-    std::vector<uint8_t> buf(sizeof(T));
-    for (uint32_t ii = 0; ii < attribArr.size(); ii++) {
-      uint8_t* ptr = &buf[0];
-      attribute.glType.write(ptr, attribArr[ii]);
-      attPtr->SetAttributeValue(attPtr->mapped_index(draco::PointIndex(ii)), ptr);
-    }
-
-    dracoAttributes[attribute.gltfName] = dracoAttId;
-  }
-
-  void NoteDracoBuffer(const BufferViewData& data);
-
   const int indices;
   const unsigned int material;
   const MeshMode mode;
@@ -71,10 +38,6 @@ struct PrimitiveData {
   std::vector<std::string> targetNames{};
 
   std::map<std::string, int> attributes;
-  std::map<std::string, int> dracoAttributes;
-
-  std::shared_ptr<draco::Mesh> dracoMesh;
-  int dracoBufferView;
 };
 
 void to_json(json& j, const PrimitiveData& d);
