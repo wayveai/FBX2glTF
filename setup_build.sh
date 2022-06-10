@@ -12,6 +12,7 @@ elif [[ "$OSTYPE" == "linux"* ]]; then
     export CONAN_CONFIG="-s compiler.libcxx=libstdc++11"
     export FBXSDK_TARBALL="https://github.com/zellski/FBXSDK-Linux/archive/2019.2.tar.gz"
     export BUILD_FILE_NAME=bin/linux
+    export BUILD_FOLDER=.
 else
     echo "This snippet only handles Mac OS X and Linux."
 fi
