@@ -8,11 +8,13 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export BUILD_FILE_NAME=bin/darwin
     export CFLAGS="$CFLAGS -DHAVE_UNISTD_H"
     export BUILD_FOLDER=build
+    export OUTPUT_DIR=bin/mac
 elif [[ "$OSTYPE" == "linux"* ]]; then
     export CONAN_CONFIG="-s compiler.libcxx=libstdc++11"
     export FBXSDK_TARBALL="https://github.com/zellski/FBXSDK-Linux/archive/2019.2.tar.gz"
     export BUILD_FILE_NAME=bin/linux
     export BUILD_FOLDER=.
+    export OUTPUT_DIR=bin/linux
 else
     echo "This snippet only handles Mac OS X and Linux."
 fi
@@ -33,4 +35,4 @@ mkdir -p ${BUILD_FOLDER}
 conan install . -if ${BUILD_FILE_NAME} -of ${BUILD_FOLDER} -s build_type=Release ${CONAN_CONFIG} --build=missing
 conan build . -bf ${BUILD_FILE_NAME}
 
-cp "${BUILD_FILE_NAME}/FBX2glTF" "../WayveSimAssets/${BUILD_FILE_NAME}"
+cp "${BUILD_FILE_NAME}/FBX2glTF" "../WayveSimAssets/${OUTPUT_DIR}"
